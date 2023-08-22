@@ -1,6 +1,6 @@
 # JobLeads - Ecotone Workshop
 
-In this repository you will find all the materials for the Ecotone workshop.
+In this repository you will find all the materials for Ecotone Workshop.
 
 ## Materiały
 
