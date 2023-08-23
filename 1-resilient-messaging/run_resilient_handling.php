@@ -74,7 +74,8 @@ function bootstrapEcotone(string $serviceName): ConfiguredMessagingSystem
         $connection->executeStatement(<<<SQL
             CREATE TABLE orders (
                 order_id UUID PRIMARY KEY,
-                product_name VARCHAR(255)
+                product_name VARCHAR(255),
+                is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
             )
         SQL);
     }
