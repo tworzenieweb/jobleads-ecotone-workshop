@@ -26,7 +26,7 @@ final class OrderFlowTest extends TestCase
             [Order::class]
         );
 
-        /** @TODO Place new order */
+        $ecotoneLite->sendCommand(new PlaceOrder($orderId, 'milk'));
 
         $this->assertNotNull(
             $ecotoneLite->getAggregate(Order::class, $orderId),
@@ -45,7 +45,7 @@ final class OrderFlowTest extends TestCase
         );
 
         $ecotoneLite->sendCommand(new PlaceOrder($orderId, 'milk'));
-        /** @TODO Cancel order */
+        $ecotoneLite->sendCommandWithRoutingKey('order.cancel', metadata: ['aggregate.id' => $orderId]);
 
         $this->assertTrue(
             $ecotoneLite
@@ -67,8 +67,7 @@ final class OrderFlowTest extends TestCase
         $ecotoneLite
             ->sendCommand(new PlaceOrder($orderId, 'milk'));
 
-        /** @TODO fetch published events */
-        $recordedEvents = [];
+        $recordedEvents = $ecotoneLite->getRecordedEvents();
 
         $this->assertEquals(
             [new OrderWasPlaced($orderId)],
@@ -84,7 +83,13 @@ final class OrderFlowTest extends TestCase
     {
         $orderId = Uuid::uuid4()->toString();
         $ecotoneLite = EcotoneLite::bootstrapFlowTesting(
-            /** @TODO complete the configuration */
+            [
+                Order::class,
+                NotificationService::class,
+            ],
+            [
+                new NotificationService(),
+            ]
         );
 
         $this->assertTrue(
@@ -106,7 +111,7 @@ final class OrderFlowTest extends TestCase
             [new NotificationService()],
         );
 
-        /** @TODO Pass using Command action */
+        $ecotoneLite->sendCommand(new PlaceOrder($orderId, 'milk'));
 
         $this->assertTrue(
             $ecotoneLite
@@ -124,7 +129,9 @@ final class OrderFlowTest extends TestCase
         $ecotoneLite = EcotoneLite::bootstrapFlowTesting(
             [Order::class, NotificationService::class],
             [new NotificationService()],
-            /** @TODO fill the configuration */
+            enableAsynchronousProcessing: [
+                SimpleMessageChannelBuilder::createQueueChannel('notifications')
+            ]
         );
 
         $ecotoneLite->sendCommand(new PlaceOrder($orderId, "milk"));
@@ -151,7 +158,7 @@ final class OrderFlowTest extends TestCase
         );
 
         $ecotoneLite->sendCommand(new PlaceOrder($orderId, 'milk'));
-        /** @TODO run the message consumer */
+        $ecotoneLite->run('notifications');
 
         $this->assertTrue(
             $ecotoneLite
