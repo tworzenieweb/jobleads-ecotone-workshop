@@ -7,7 +7,9 @@ namespace App\Application;
 use App\Domain\Order;
 use App\Domain\OrderRepository;
 use App\Domain\OrderWasCancelled;
+use App\Domain\OrderWasPlaced;
 use App\Domain\ShippingService;
+use Ecotone\Messaging\Attribute\Asynchronous;
 use Ecotone\Modelling\Attribute\CommandHandler;
 use Ecotone\Modelling\Attribute\EventHandler;
 use Ecotone\Modelling\EventBus;
@@ -17,13 +19,13 @@ final class OrderService
     #[CommandHandler]
     public function placeOrder(
         PlaceOrder $placeOrder, OrderRepository $orderRepository,
-        ShippingService $shippingService,
+        EventBus $eventBus
     ): void
     {
         $order = Order::create($placeOrder->orderId, $placeOrder->productName);
         $orderRepository->save($order);
 
-//        $shippingService->ship($order);
+        $eventBus->publish(new OrderWasPlaced($placeOrder->orderId));
     }
 
     #[CommandHandler]
@@ -36,5 +38,16 @@ final class OrderService
         $orderRepository->save($order);
 
         $eventBus->publish(new OrderWasCancelled($command->orderId));
+    }
+
+    #[Asynchronous("orders")]
+    #[EventHandler(endpointId: "order_was_placed")]
+    public function when(
+        OrderWasPlaced $orderWasPlaced,
+        OrderRepository $orderRepository,
+        ShippingService $shippingService
+    )
+    {
+        $shippingService->ship($orderRepository->get($orderWasPlaced->orderId));
     }
 }

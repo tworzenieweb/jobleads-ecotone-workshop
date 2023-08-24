@@ -40,4 +40,10 @@ final class EcotoneConfiguration
          */
         return AmqpDistributedBusConfiguration::createConsumer();
     }
+
+    #[ServiceContext]
+    public function orderChannelDefinition()
+    {
+        return \Ecotone\Amqp\AmqpBackedMessageChannelBuilder::create("orders");
+    }
 }

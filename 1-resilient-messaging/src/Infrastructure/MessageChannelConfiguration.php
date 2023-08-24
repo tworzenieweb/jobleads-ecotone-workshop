@@ -6,7 +6,6 @@ namespace App\Infrastructure;
 
 use Ecotone\Dbal\DbalBackedMessageChannelBuilder;
 use Ecotone\Messaging\Attribute\ServiceContext;
-use Ecotone\Messaging\Channel\ExceptionalQueueChannel;
 use Ecotone\Messaging\Channel\PollableChannel\GlobalPollableChannelConfiguration;
 
 final class MessageChannelConfiguration
@@ -26,8 +25,13 @@ final class MessageChannelConfiguration
     #[ServiceContext]
     public function notificationsMessageChannel()
     {
-        return [
-            ExceptionalQueueChannel::createWithExceptionOnSend('notifications', 3)
-        ];
+        return DbalBackedMessageChannelBuilder::create('notifications');
+    }
+
+
+    #[ServiceContext]
+    public function asyncChannelConfiguration()
+    {
+        return GlobalPollableChannelConfiguration::createWithDefaults()->withErrorChannel("dbal_dead_letter");
     }
 }
