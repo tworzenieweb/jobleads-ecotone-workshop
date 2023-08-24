@@ -4,7 +4,6 @@ use App\Application\CancelOrder;
 use App\Application\PlaceOrder;
 use App\Domain\OrderRepository;
 use App\Domain\ShippingService;
-use App\Infrastructure\DoctrineORMOrderRepository;
 use App\Infrastructure\NetworkFailingShippingService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;

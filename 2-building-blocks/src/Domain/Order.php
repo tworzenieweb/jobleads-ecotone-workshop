@@ -4,12 +4,22 @@ declare(strict_types=1);
 
 namespace App\Domain;
 
+use App\Application\CancelOrder;
+use App\Application\PlaceOrder;
 use Doctrine\ORM\Mapping as ORM;
+use Ecotone\Modelling\Attribute\Aggregate;
+use Ecotone\Modelling\Attribute\CommandHandler;
+use Ecotone\Modelling\Attribute\Identifier;
+use Ecotone\Modelling\WithEvents;
 
+#[Aggregate]
 #[ORM\Entity]
 #[ORM\Table(name: 'orders')]
 final class Order
 {
+    use WithEvents;
+
+    #[Identifier]
     #[ORM\Id]
     #[ORM\Column(name: 'order_id', type: 'string')]
     private string $orderId;
@@ -27,13 +37,17 @@ final class Order
         $this->isCancelled = false;
     }
 
-    public static function create(string $userId, string $productName): self
+    #[CommandHandler]
+    public static function create(PlaceOrder $placeOrder): self
     {
-        return new self($userId, $productName);
+        return new self($placeOrder->orderId, $placeOrder->productName);
     }
 
+    #[CommandHandler('order.cancel')]
     public function cancel(): void
     {
         $this->isCancelled = true;
+
+        $this->recordThat(new OrderWasCancelled($this->orderId));
     }
 }

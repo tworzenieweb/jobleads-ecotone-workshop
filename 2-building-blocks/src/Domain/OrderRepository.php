@@ -8,7 +8,12 @@ use Ecotone\Modelling\Attribute\Repository;
 
 interface OrderRepository
 {
+    #[Repository]
     public function get(string $orderId): Order;
 
+    #[Repository]
+    public function findOrder(string $orderId): ?Order;
+
+    #[Repository]
     public function save(Order $order): void;
 }
